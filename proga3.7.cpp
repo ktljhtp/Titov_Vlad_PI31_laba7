@@ -5,6 +5,7 @@
 #include <locale>
 #include <Windows.h>
 #include <stdexcept>
+#include <algorithm>
 
 using namespace std;
 
@@ -90,18 +91,18 @@ public:
 
 class Content {
 protected:
-    string title;  // Название трека
-    string artist; // Исполнитель
-    float duration; // Продолжительность в секундах
-    string format;  // Формат (например, MP3)
+    string title;
+    string artist;
+    float duration;
+    string format;
 
 public:
-    // Конструктор с параметрами
     Content(const string& t = "", const string& a = "", float d = 0.0f, const string& f = "")
         : title(t), artist(a), duration(d), format(f) {
     }
 
-    // Виртуальная функция для получения информации
+    virtual ~Content() = default;
+
     virtual string getInfo() const {
         return "Track: " + title + " by " + artist +
             " (Duration: " + to_string(duration) + " sec, Format: " + format + ")";
@@ -114,15 +115,8 @@ public:
         format = f;
     }
 
-    // Невиртуальная функция для демонстрации вызова getInfo()
-    void printInfo() const {
-        cout << getInfo() << endl;  // Вызов виртуальной функции
-    }
-
-    void print() const {
-        cout << "Title: " << title << "\nArtist: " << artist
-            << "\nDuration: " << duration << " sec\nFormat: " << format << endl;
-    }
+    const string& getTitle() const { return title; }
+    float getDuration() const { return duration; }
 };
 
 
@@ -150,25 +144,38 @@ public:
 };
 
 // Абстрактный класс MediaContent
-class MediaContent {
-protected:
-    string title;  // Название
-    string creator; // Создатель (например, исполнитель или ведущий)
-    float duration; // Продолжительность в секундах
+class MediaLibrary {
+private:
+    vector<Content*> library;
 
 public:
-    MediaContent(const string& t, const string& c, float d)
-        : title(t), creator(c), duration(d) {
+    ~MediaLibrary() {
+        for (auto content : library) {
+            delete content;
+        }
     }
 
-    virtual ~MediaContent() = default;
+    void addContent(Content* content) {
+        library.push_back(content);
+    }
 
-    // Чисто виртуальная функция для получения информации о контенте
-    virtual string getInfo() const = 0;
+    void sortLibraryByDuration() {
+        sort(library.begin(), library.end(), [](Content* a, Content* b) {
+            return a->getDuration() < b->getDuration();
+            });
+    }
 
-    // Общая функция для всех типов контента
-    void play() const {
-        cout << "Playing: " << title << " (" << duration << " sec)" << endl;
+    Content* searchByTitle(const string& title) const {
+        auto it = find_if(library.begin(), library.end(), [&title](Content* content) {
+            return content->getTitle() == title;
+            });
+        return (it != library.end()) ? *it : nullptr;
+    }
+
+    void printLibrary() const {
+        for (const auto& content : library) {
+            cout << content->getInfo() << endl;
+        }
     }
 };
 
