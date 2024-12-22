@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.Collections;
+import java.util.Comparator;
 
 // Абстрактный класс для медиа-контента
 abstract class MediaContent {
@@ -151,52 +153,53 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        // Демонстрация производного класса, вызова конструктора базового класса
-        AudioContent audio = new AudioContent("Classical Music", 300, "MP3");
-        VideoContent video = new VideoContent("Nature Documentary", 1200, "1080p");
+        // Контейнер для хранения медиа-контента
+        ArrayList<MediaContent> mediaLibrary = new ArrayList<>();
 
-        // Демонстрация абстрактного класса
-        MediaContent[] mediaLibrary = {audio, video};
-        for (MediaContent media : mediaLibrary) {
-            media.printInfo();
-            media.play();
-            System.out.println();
-        }
+        // Добавление объектов базового и производного классов
+        mediaLibrary.add(new AudioContent("Classical Music", 300, "MP3"));
+        mediaLibrary.add(new VideoContent("Nature Documentary", 1200, "1080p"));
+        mediaLibrary.add(new AudioContent("Jazz", 180, "WAV"));
+        mediaLibrary.add(new VideoContent("Sci-Fi Movie", 7200, "4K"));
 
-        // Демонстрация интерфейса
-        Playable track = new MusicTrack("Shape of You", "Ed Sheeran");
-        track.play();
-        track.pause();
-        track.stop();
+        // Печать исходного списка
+        System.out.println("Original Media Library:");
+        printMediaLibrary(mediaLibrary);
 
-        // Создание пользователя
-        User user = new User("Alice");
-        user.addMedia(audio);
-        user.addMedia(video);
-        user.printUserInfo();
+        // Сортировка медиа-контента по продолжительности
+        mediaLibrary.sort(Comparator.comparingDouble(media -> media.duration));
+        System.out.println("\nMedia Library Sorted by Duration:");
+        printMediaLibrary(mediaLibrary);
 
-        // Демонстрация клонирования
-        Playlist originalPlaylist = new Playlist();
-        originalPlaylist.setName("My Playlist");
-        originalPlaylist.addContent(audio);
-        originalPlaylist.addContent(video);
+        // Поиск контента по названию
+        System.out.print("\nEnter the title to search: ");
+        String searchTitle = scanner.nextLine();
+        MediaContent foundContent = searchByTitle(mediaLibrary, searchTitle);
 
-        try {
-            Playlist clonedPlaylist = (Playlist) originalPlaylist.clone();
-            Playlist deepClonedPlaylist = originalPlaylist.deepClone();
-
-            System.out.println("\nOriginal Playlist:");
-            originalPlaylist.printPlaylistInfo();
-
-            System.out.println("\nShallow Cloned Playlist:");
-            clonedPlaylist.printPlaylistInfo();
-
-            System.out.println("\nDeep Cloned Playlist:");
-            deepClonedPlaylist.printPlaylistInfo();
-        } catch (CloneNotSupportedException e) {
-            System.out.println("Cloning failed: " + e.getMessage());
+        if (foundContent != null) {
+            System.out.println("\nFound Content:");
+            foundContent.printInfo();
+        } else {
+            System.out.println("\nNo content found with title: " + searchTitle);
         }
 
         scanner.close();
+    }
+
+    // Метод для печати медиатеки
+    private static void printMediaLibrary(ArrayList<MediaContent> library) {
+        for (MediaContent media : library) {
+            media.printInfo();
+        }
+    }
+
+    // Метод для поиска контента по названию
+    private static MediaContent searchByTitle(ArrayList<MediaContent> library, String title) {
+        for (MediaContent media : library) {
+            if (media.title.equalsIgnoreCase(title)) {
+                return media;
+            }
+        }
+        return null;
     }
 }
